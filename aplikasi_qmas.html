@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Penjualan & Stok QMAS</title>
+    <!-- CSS UI & Excel Export Library -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #11161c;
+            --bg-mid: #171d24;
+            --bg-soft: #edf2f8;
+            --panel: #f8fafc;
+            --panel-strong: #ffffff;
+            --sidebar: #eef1f5;
+            --line: #dfe6ee;
+            --line-soft: #ebeff5;
+            --muted: #758199;
+            --text: #1d2736;
+            --primary: #20a6ff;
+            --primary-strong: #0d87db;
+            --blue-soft: #e8f5ff;
+            --success: #29b66d;
+            --warning: #f4b935;
+            --danger: #ef6b6b;
+            --shadow-soft: 0 12px 28px rgba(15, 23, 42, 0.06);
+            --shadow-card: 0 10px 22px rgba(39, 51, 71, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            height: 100%;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(180deg, #0d1015 0%, #171d24 100%);
+            color: var(--text);
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .desktop-window {
+            width: 100%;
+            height: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
+        }
+
+        .window-bar {
+            display: none !important;
+        }
+
+        .window-left,
+        .window-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .traffic {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 10px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.3);
+        }
+
+        .dot.red { background: #ff5f57; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #28c840; }
+
+        .chrome-tab {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 10px 10px 0 0;
+            padding: 7px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #dfeaf8;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        .chrome-tab.active {
+            background: rgba(255,255,255,0.07);
+            border-bottom-color: transparent;
+        }
+
+        .address-box {
+            width: min(620px, 72%);
+            height: 32px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #dfeaf8;
+            font-size: 12px;
+            letter-spacing: 0.1px;
+        }
+
+        .browser-toolbar {
+            display: none !important;
+        }
+
+        .nav-btns {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #dfeaf8;
+            font-size: 16px;
+        }
+
+        .nav-btns span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            opacity: 0.9;
+        }
+
+        .toolbar-middle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .workspace {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            background: #eef3f7;
+        }
+
+        .sidebar {
+            width: 245px;
+            background: linear-gradient(180deg, #edf1f6 0%, #edf1f5 100%);
+            border-right: 1px solid var(--line);
+            padding: 18px 0 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 18px 18px;
+        }
+
+        .brand-mark {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2ec2ff, #0e8de8);
+            position: relative;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5), 0 10px 18px rgba(14,141,232,0.28);
+        }
+
+        .brand-mark::before {
+            content: "";
+            position: absolute;
+            inset: 10px;
+            border-radius: 8px 0 8px 0;
+            background: rgba(255,255,255,0.6);
+            transform: rotate(45deg);
+        }
+
+        .brand-name {
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #203147;
+            line-height: 1.1;
+        }
+
+        .brand-name small {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: #7d8898;
+            margin-top: 2px;
+        }
+
+        .menu-title {
+            padding: 10px 18px 8px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            color: #7d8898;
+            text-transform: uppercase;
+        }
+
+        .menu-list {
+            list-style: none;
+            margin: 0;
+            padding: 0 10px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 12px;
+            border-radius: 10px;
+            color: #334257;
+            font-weight: 600;
+            margin: 4px 0;
+            transition: all 0.2s ease;
+        }
+
+        .menu-item:hover {
+            background: rgba(17, 121, 210, 0.04);
+        }
+
+        .menu-item i {
+            width: 18px;
+            text-align: center;
+            opacity: 0.8;
+        }
+
+        .menu-item.active {
+            background: linear-gradient(135deg, rgba(32,166,255,0.12), rgba(32,166,255,0.05));
+            color: #1d79d5;
+            box-shadow: inset 0 0 0 1px rgba(20, 133, 219, 0.08);
+            font-weight: 700;
+        }
+
+        .support-card {
+            margin-top: auto;
+            margin-left: 12px;
+            margin-right: 12px;
+            margin-bottom: 18px;
+            background: linear-gradient(135deg, #19b3ea 0%, #0d8fe6 100%);
+            border-radius: 15px;
+            color: white;
+            padding: 15px 14px 14px;
+            box-shadow: 0 12px 24px rgba(18, 134, 217, 0.2);
+        }
+
+        .support-card h4 {
+            margin: 0 0 12px;
+            font-size: 17px;
+            line-height: 1.25;
+            font-weight: 800;
+            letter-spacing: -0.2px;
+        }
+
+        .support-card .mini-btn {
+            width: 100%;
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .content {
+            flex: 1;
+            background: #eef2f6;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .content-header {
+            background: #f5f7fa;
+            border-bottom: 1px solid var(--line);
+            height: 74px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .header-tabs {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            color: #4f5d70;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .header-tab.active {
+            background: #edf3ff;
+            color: #2457a5;
+            box-shadow: inset 0 0 0 1px rgba(28, 104, 190, 0.08);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pill-btn {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            color: #37475f;
+            padding: 8px 14px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(18, 30, 45, 0.03);
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, #34aefc, #0c85d9);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-weight: 800;
+            box-shadow: 0 10px 18px rgba(25, 130, 212, 0.22);
+        }
+
+        .main-panel {
+            flex: 1;
+            padding: 18px 20px;
+            overflow: auto;
+        }
+
+        .page-card {
+            background: rgba(255,255,255,0.72);
+            border: 1px solid rgba(161,177,197,0.24);
+            border-radius: 20px;
+            padding: 18px 20px 12px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .title-row .date {
+            color: #7d8aa2;
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-right: 10px;
+            font-weight: 700;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #2a3648;
+            font-weight: 700;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1d2733, #697c93);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
+            overflow: hidden;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.18);
+        }
+
+        .user-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+            font-size: 12px;
+        }
+
+        .table-tools {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin: 4px 0 12px;
+        }
+
+        .toolbar-button {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(127,138,157,0.28);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #3d4d60;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(20, 28, 35, 0.03);
+        }
+
+        .table-wrap {
+            background: rgba(255,255,255,0.48);
+            border: 1px solid rgba(178,190,205,0.46);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            background: linear-gradient(180deg, #f3f6f9, #edf2f7);
+            color: #6a7889;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.13em;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--line);
+            font-weight: 800;
+            text-align: left;
+        }
+
+        tbody td {
+            padding: 16px;
+            border-bottom: 1px solid var(--line-soft);
+            font-size: 14px;
+            vertical-align: middle;
+            color: #2b3746;
+            background: rgba(255,255,255,0.05);
+        }
+
+        tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(18, 121, 215, 0.02);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .amount {
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            color: #1b2430;
+        }
+
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            min-width: 72px;
+        }
+
+        .badge-status.tunai { background: #edf9f2; color: #238b5b; }
+        .badge-status.transfer { background: #ebf5ff; color: #2878c0; }
+        .badge-status.tagihan { background: #fff7dd; color: #b77a12; }
+
+        .invoice {
+            font-weight: 800;
+            color: #1b2431;
+            letter-spacing: -0.2px;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .ghost-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 9px;
+            background: rgba(17,16,16,0.02);
+            border: 1px solid rgba(17,16,16,0.08);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: #3d4c63;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .header-title h2 {
+            margin: 0;
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: -0.6px;
+            color: #1a2330;
+        }
+
+        .kasir-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 18px;
+            margin-top: 16px;
+        }
+
+        .product-panel {
+            background: rgba(255,255,255,0.3);
+            border: 1px solid rgba(164,178,192,0.24);
+            border-radius: 18px;
+            padding: 10px 12px 12px;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .search-box {
+            flex: 1;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: #8695a9;
+            min-height: 42px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px;
+            background: rgba(255,255,255,0.65);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+        }
+
+        .filter {
+            border: none;
+            background: transparent;
+            color: #4c5f77;
+            border-radius: 10px;
+            padding: 9px 14px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .filter.active {
+            background: linear-gradient(135deg, #2eb7ff, #1096e8);
+            color: white;
+            box-shadow: 0 8px 16px rgba(17, 149, 232, 0.25);
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(120px, 1fr));
+            gap: 14px;
+        }
+
+        .product-card {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(150,165,180,0.28);
+            background: rgba(255,255,255,0.3);
+            box-shadow: var(--shadow-card);
+        }
+
+        .product-image {
+            position: relative;
+            height: 164px;
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 12px;
+        }
+
+        .product-image::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.18));
+        }
+
+        .stock-badge {
+            position: relative;
+            z-index: 1;
+            display: inline-block;
+            background: rgba(27, 186, 99, 0.92);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            box-shadow: 0 6px 12px rgba(39, 171, 94, 0.22);
+        }
+
+        .image-1 {
+            background-image: linear-gradient(180deg, rgba(16, 24, 38, 0.08), rgba(16,24,38,0.16)), url('https://images.unsplash.com/photo-1622483767028-3f66f2b7420a?auto=format&fit=crop&w=600&q=80');
+        }
+
+        .image-2 {
+            background-image: linear-gradient(180deg, rgba(16, 24, 38, 0.08), rgba(16,24,38,0.16)), url('https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=600&q=80');
+        }
+
+        .image-3 {
+            background-image: linear-gradient(180deg, rgba(16, 24, 38, 0.08), rgba(16,24,38,0.16)), url('https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=600&q=80');
+        }
+
+        .image-4 {
+            background-image: linear-gradient(180deg, rgba(16, 24, 38, 0.08), rgba(16,24,38,0.16)), url('https://images.unsplash.com/photo-1622483767028-3f66f2b7420a?auto=format&fit=crop&w=600&q=80');
+        }
+
+        .image-5 {
+            background-image: linear-gradient(180deg, rgba(16, 24, 38, 0.08), rgba(16,24,38,0.16)), url('https://images.unsplash.com/photo-1622483767028-3f66f2b7420a?auto=format&fit=crop&w=600&q=80');
+        }
+
+        .image-6 {
+            background-image: linear-gradient(180deg, rgba(16, 24, 38, 0.08), rgba(16,24,38,0.16)), url('https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=600&q=80');
+        }
+
+        .image-7 {
+            background-image: linear-gradient(180deg, rgba(16, 24, 38, 0.08), rgba(16,24,38,0.16)), url('https://images.unsplash.com/photo-1622483767028-3f66f2b7420a?auto=format&fit=crop&w=600&q=80');
+        }
+
+        .image-8 {
+            background-image: linear-gradient(180deg, rgba(16, 24, 38, 0.08), rgba(16,24,38,0.16)), url('https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=600&q=80');
+        }
+
+        .cart-panel {
+            background: rgba(255,255,255,0.38);
+            border: 1px solid rgba(164,178,192,0.24);
+            border-radius: 18px;
+            padding: 16px 14px 12px;
+            display: flex;
+            flex-direction: column;
+            min-height: 420px;
+        }
+
+        .cart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .cart-header h3 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 800;
+            color: #28374e;
+        }
+
+        .cart-header span {
+            color: #607089;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .cart-empty {
+            text-align: center;
+            padding: 26px 10px 10px;
+            color: #6e7d8f;
+            flex: 1;
+        }
+
+        .cart-icon {
+            font-size: 38px;
+            margin-bottom: 10px;
+            opacity: 0.7;
+        }
+
+        .cart-empty h4 {
+            margin: 0 0 8px;
+            font-size: 17px;
+            font-weight: 700;
+            color: #44556d;
+        }
+
+        .cart-empty p {
+            margin: 0;
+            font-size: 12px;
+            color: #70839a;
+        }
+
+        .summary-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #394d64;
+            padding: 10px 0;
+            border-top: 1px solid rgba(160,172,188,0.35);
+        }
+
+        .summary-row strong {
+            font-size: 18px;
+            color: #1b2533;
+        }
+
+        .summary-row.total {
+            font-size: 15px;
+            font-weight: 800;
+            padding-top: 12px;
+        }
+
+        .summary-row.total strong {
+            font-size: 22px;
+            color: #0f1d2d;
+        }
+
+        .pay-button {
+            margin-top: 16px;
+            border: 1px solid #dfe9f3;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #eef8ff, #e2f3ff);
+            color: #1d2c42;
+            font-size: 15px;
+            font-weight: 800;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5);
+        }
+
+        .screen-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(150px, 1fr));
+            gap: 14px;
+            margin-top: 8px;
+        }
+
+        .kpi-card {
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(170,184,200,0.28);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .kpi-label {
+            color: #75839a;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .kpi-value {
+            margin-top: 10px;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #1c2736;
+        }
+
+        .kpi-trend {
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #1a9a55;
+        }
+
+        .panel-section {
+            background: rgba(255,255,255,0.68);
+            border: 1px solid rgba(170,184,200,0.26);
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .section-head h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+            color: #1d2b3a;
+        }
+
+        .mini-btn,
+        .pill-btn,
+        .primary-btn,
+        .action-btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 700;
+            transition: 0.2s ease;
+        }
+
+        .mini-btn {
+            background: rgba(34, 160, 255, 0.1);
+            color: #1187d8;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, #22a8ff, #0f8fe8);
+            color: white;
+            box-shadow: 0 10px 18px rgba(17, 143, 232, 0.2);
+        }
+
+        .action-btn {
+            background: #eef5ff;
+            color: #1b6db3;
+        }
+
+        .table-wrap {
+            overflow: hidden;
+            border-radius: 14px;
+            border: 1px solid rgba(185,195,208,0.5);
+            background: rgba(255,255,255,0.5);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            text-align: left;
+            background: #f3f7fb;
+            color: #6d7d90;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            padding: 12px 14px;
+            font-weight: 800;
+        }
+
+        tbody td {
+            padding: 13px 14px;
+            border-top: 1px solid rgba(194,205,219,0.35);
+            color: #2a3645;
+        }
+
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .badge-status.tunai { background: #edf8f1; color: #1f8c59; }
+        .badge-status.transfer { background: #ebf5ff; color: #2173be; }
+        .badge-status.tagihan { background: #fff7dc; color: #d9941d; }
+
+        .stock-table .qty-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f5f8fc;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 6px 8px;
+        }
+
+        .stock-table input {
+            width: 52px;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-weight: 700;
+            color: #1d2b3a;
+        }
+
+        .stock-table .price-input {
+            width: 125px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 8px 10px;
+            background: #fff;
+            color: #1d2b3a;
+            font-weight: 700;
+        }
+
+        .stock-table .price-input:focus {
+            outline: 2px solid rgba(32, 166, 255, 0.22);
+            border-color: var(--primary);
+        }
+
+        .stock-location-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            overflow-x: auto;
+        }
+
+        .stock-location-tab {
+            flex: 0 0 auto;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 9px 13px;
+            background: #f7faff;
+            color: #4c5f77;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .stock-location-tab.active {
+            border-color: #77c8ff;
+            background: #eaf7ff;
+            color: #0f79d5;
+        }
+
+        .stock-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .stock-summary-card {
+            padding: 13px 14px;
+            border: 1px solid rgba(170,184,200,0.28);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.72);
+        }
+
+        .stock-summary-card span {
+            display: block;
+            color: #75839a;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .stock-summary-card strong {
+            display: block;
+            margin-top: 5px;
+            color: #192b3f;
+            font-size: 24px;
+        }
+
+        .chart-bars {
+            display: flex;
+            align-items: end;
+            gap: 16px;
+            height: 180px;
+            padding-top: 18px;
+        }
+
+        .bar-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: end;
+            gap: 10px;
+            color: #6a7b90;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .bar {
+            width: 100%;
+            max-width: 44px;
+            border-radius: 10px 10px 0 0;
+            background: linear-gradient(180deg, #67d0ff, #0e8fe8);
+            box-shadow: 0 10px 18px rgba(14,143,232,0.18);
+        }
+
+        .report-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .report-card {
+            padding: 14px;
+            border: 1px solid rgba(170,184,200,0.28);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.7);
+        }
+
+        .report-card h4 {
+            margin: 0 0 8px;
+            font-size: 13px;
+            color: #75839a;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .report-card strong {
+            font-size: 26px;
+            color: #192b3f;
+            letter-spacing: -0.4px;
+        }
+
+        .meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 10px;
+            color: #5f727f;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: #72839a;
+        }
+
+        .empty-state strong {
+            display: block;
+            font-size: 20px;
+            color: #324864;
+            margin-bottom: 8px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(171,182,197,0.45);
+        }
+
+        .cart-item-name {
+            font-weight: 700;
+            color: #22314a;
+        }
+
+        .cart-item small {
+            display: block;
+            color: #6d7d90;
+            margin-top: 2px;
+        }
+
+        .qty-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f5f8fb;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 4px 8px;
+        }
+
+        .qty-control button {
+            width: 22px;
+            height: 22px;
+            border: none;
+            border-radius: 50%;
+            background: #eaf3ff;
+            color: #166db0;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .cart-item-price {
+            font-weight: 800;
+            color: #1d2b3a;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(16, 24, 38, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .modal-card {
+            width: min(460px, 92vw);
+            background: white;
+            border-radius: 18px;
+            padding: 22px 20px 18px;
+            box-shadow: 0 24px 50px rgba(19, 33, 47, 0.22);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 800;
+            color: #1b2d43;
+        }
+
+        .close-btn {
+            width: 34px;
+            height: 34px;
+            border: none;
+            border-radius: 10px;
+            background: #edf5ff;
+            color: #1c6eb6;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .payment-method {
+            border: 1px solid #dfeaf5;
+            border-radius: 12px;
+            background: #f8fbff;
+            padding: 12px 10px;
+            text-align: center;
+            font-weight: 700;
+            color: #35506e;
+            cursor: pointer;
+        }
+
+        .payment-method.active {
+            border-color: #77c8ff;
+            background: #ebf7ff;
+            color: #0f79d5;
+            box-shadow: inset 0 0 0 1px rgba(17, 143, 232, 0.1);
+        }
+
+        .payment-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .payment-total {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+            color: #10253d;
+        }
+
+        @media (max-width: 900px) {
+            .workspace {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                flex-shrink: 0;
+                border-right: none;
+                border-bottom: 1px solid var(--line);
+            }
+
+            .content-header {
+                height: auto;
+                padding-top: 12px;
+                padding-bottom: 12px;
+                flex-wrap: wrap;
+            }
+
+            .main-panel {
+                padding: 12px;
+            }
+
+            .kasir-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .product-grid {
+                grid-template-columns: repeat(2, minmax(120px, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                align-items: flex-start;
+            }
+
+            .desktop-window {
+                min-height: 100dvh;
+                overflow: visible;
+            }
+
+            .sidebar {
+                padding-top: 8px;
+            }
+
+            .brand {
+                padding: 6px 14px 10px;
+            }
+
+            .brand-mark {
+                width: 34px;
+                height: 34px;
+            }
+
+            .menu-title {
+                display: none;
+            }
+
+            .menu-list {
+                display: flex;
+                gap: 6px;
+                padding: 0 10px 10px;
+                overflow-x: auto;
+                scrollbar-width: thin;
+            }
+
+            .menu-item {
+                flex: 0 0 auto;
+                margin: 0;
+                padding: 9px 11px;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+
+            .content-header {
+                min-height: 48px;
+                padding: 7px 12px;
+            }
+
+            .main-panel {
+                padding: 10px;
+                overflow: visible;
+            }
+
+            .page-card {
+                border-radius: 14px;
+                padding: 12px 10px 10px;
+            }
+
+            .title-row {
+                align-items: flex-start;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 12px;
+            }
+
+            .title-row .date {
+                font-size: 10px;
+                line-height: 1.4;
+            }
+
+            .user-badge {
+                margin-left: auto;
+                gap: 7px;
+            }
+
+            .top-bar {
+                align-items: stretch;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .filter-group {
+                max-width: 100%;
+                overflow-x: auto;
+                scrollbar-width: thin;
+            }
+
+            .filter {
+                flex: 0 0 auto;
+                padding: 8px 11px;
+                white-space: nowrap;
+            }
+
+            .product-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 9px;
+            }
+
+            .product-image {
+                height: 112px;
+            }
+
+            .product-card > div:last-child {
+                padding: 9px !important;
+            }
+
+            .product-card .mini-btn {
+                padding: 7px 8px;
+                font-size: 11px;
+            }
+
+            .kasir-layout {
+                gap: 12px;
+                margin-top: 12px;
+            }
+
+            .product-panel,
+            .cart-panel,
+            .panel-section {
+                border-radius: 14px;
+                padding: 12px;
+            }
+
+            .stock-summary-card {
+                padding: 10px;
+            }
+
+            .stock-summary-card span {
+                font-size: 10px;
+            }
+
+            .stock-summary-card strong {
+                font-size: 19px;
+            }
+
+            .cart-panel {
+                min-height: 340px;
+            }
+
+            .cart-item {
+                align-items: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .cart-item > div:last-child {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .table-wrap {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                min-width: 600px;
+            }
+
+            .kpi-grid,
+            .report-list {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 9px;
+            }
+
+            .kpi-card,
+            .report-card {
+                padding: 12px;
+            }
+
+            .kpi-value,
+            .report-card strong {
+                font-size: 21px;
+                overflow-wrap: anywhere;
+            }
+
+            .section-head {
+                align-items: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .section-head h3 {
+                font-size: 16px;
+            }
+
+            .chart-bars {
+                gap: 8px;
+                height: 150px;
+            }
+
+            .modal-card {
+                max-height: calc(100dvh - 24px);
+                overflow-y: auto;
+                padding: 18px 14px 14px;
+            }
+
+            .payment-total {
+                font-size: 23px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .product-grid,
+            .kpi-grid,
+            .report-list {
+                grid-template-columns: 1fr;
+            }
+
+            .product-image {
+                height: 140px;
+            }
+
+            .user-text {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="desktop-window">
+        <div class="workspace">
+            <aside class="sidebar">
+                <div class="brand">
+                    <div class="brand-mark"></div>
+                    <div class="brand-name">BUMK<small>AIR MINERAL</small></div>
+                </div>
+
+                <div class="menu-title">Menu</div>
+                <ul class="menu-list">
+                    <li class="menu-item" data-menu="dashboard"><i>▣</i>Dashboard</li>
+                    <li class="menu-item active" data-menu="kasir"><i>◫</i>Kasir</li>
+                    <li class="menu-item" data-menu="stok"><i>▤</i>Stok Produk</li>
+                    <li class="menu-item" data-menu="transaksi"><i>▣</i>Transaksi</li>
+                    <li class="menu-item" data-menu="laporan"><i>◫</i>Laporan</li>
+                </ul>
+
+            </aside>
+
+            <main class="content">
+                <div class="content-header">
+                    <div class="header-tabs">
+                        <div class="header-tab active">Manage</div>
+                    </div>
+                </div>
+
+                <div class="main-panel">
+                    <div class="page-card">
+                        <div class="title-row">
+                            <div class="date">Kamis, 03 September 2026</div>
+                            <div class="user-badge">
+                                <span class="ghost-icon">🔔</span>
+                                <div class="avatar">A</div>
+                                <div class="user-text">
+                                    <span style="font-size: 13px; font-weight: 800;">Admin</span>
+                                    <span class="muted">Kasir Utama</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="pageContent"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script>
+        const menuItems = document.querySelectorAll('.menu-item');
+        const stockLocations = ['Gudang Food Court', 'Kantor', 'Daqam Cafe'];
+
+        const defaultState = {
+            activeMenu: 'kasir',
+            activeFilter: 'Semua',
+            activeStockLocation: 'Gudang Food Court',
+            searchQuery: '',
+            customerName: '',
+            checkoutModalOpen: false,
+            paymentMethod: 'Tunai',
+            products: [
+                { id: 1, name: 'QMAS GL 19L', category: 'QMAS GL 19L', stock: 26, price: 23000, image: 'image-2' },
+                { id: 2, name: 'QMAS 240 ML', category: 'QMAS 240 ML', stock: 18, price: 24000, image: 'image-1' },
+                { id: 3, name: 'QMAS 330 ML', category: 'QMAS 330 ML', stock: 25, price: 52000, image: 'image-5' },
+                { id: 4, name: 'QMAS 600 ML', category: 'QMAS 600 ML', stock: 60, price: 62000, image: 'image-1' },
+                { id: 5, name: 'QMAS 1.5L', category: 'QMAS 1.5L', stock: 90, price: 70000, image: 'image-8' }
+            ],
+            cart: [],
+            transactions: [
+                { invoice: 'INV-20260903-0002', date: '03 Sep 2026, 10.39', customer: 'Test Cust', item: '1 produk', method: 'Tunai', total: 44000 },
+                { invoice: 'INV-20260903-0001', date: '03 Sep 2026, 10.38', customer: '-', item: '1 produk', method: 'Tunai', total: 44000 },
+                { invoice: 'INV-20260902-0009', date: '02 Sep 2026, 16.24', customer: 'Budi', item: '3 produk', method: 'Transfer', total: 68000 },
+                { invoice: 'INV-20260902-0008', date: '02 Sep 2026, 15.12', customer: 'Maya', item: '2 produk', method: 'Tagihan', total: 52000 }
+            ]
+        };
+
+        const storedState = JSON.parse(localStorage.getItem('bumkAppState') || 'null');
+        const appState = storedState
+            ? {
+                ...JSON.parse(JSON.stringify(defaultState)),
+                ...storedState,
+                products: Array.isArray(storedState.products) ? storedState.products : JSON.parse(JSON.stringify(defaultState.products)),
+                cart: Array.isArray(storedState.cart) ? storedState.cart : [],
+                transactions: Array.isArray(storedState.transactions) ? storedState.transactions : JSON.parse(JSON.stringify(defaultState.transactions))
+            }
+            : JSON.parse(JSON.stringify(defaultState));
+
+        appState.products = appState.products.map(product => {
+            const legacyStock = Number(product.stock || 0);
+            const stocks = stockLocations.reduce((result, location) => {
+                result[location] = Number(product.stocks?.[location] ?? legacyStock);
+                return result;
+            }, {});
+            return { ...product, stocks };
+        });
+
+        const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
+
+        function getProductStock(product, location = appState.activeStockLocation) {
+            return Number(product.stocks?.[location] ?? product.stock ?? 0);
+        }
+
+        function setProductStock(product, value, location = appState.activeStockLocation) {
+            if (!product.stocks) product.stocks = {};
+            product.stocks[location] = Math.max(0, Number(value) || 0);
+        }
+
+        function saveState() {
+            localStorage.setItem('bumkAppState', JSON.stringify(appState));
+        }
+
+        function generateInvoice() {
+            const date = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            return `INV-${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+        }
+
+        function exportTransactionsToExcel() {
+            if (!appState.transactions.length) return;
+
+            const totalPendapatan = appState.transactions.reduce((sum, item) => sum + Number(item.total || 0), 0);
+            const today = new Date().toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+            });
+
+            const rows = [
+                ['LAPORAN TRANSAKSI QMAS'],
+                ['Tanggal Export', today],
+                [],
+                ['Invoice', 'Tanggal', 'Pelanggan', 'Item', 'Metode', 'Total'],
+                ...appState.transactions.map(item => [
+                    item.invoice,
+                    item.date,
+                    item.customer,
+                    item.item,
+                    item.method,
+                    Number(item.total || 0)
+                ]),
+                [],
+                ['TOTAL PENDAPATAN', '', '', '', '', totalPendapatan]
+            ];
+
+            const worksheet = XLSX.utils.aoa_to_sheet(rows);
+
+            worksheet['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+                { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } }
+            ];
+
+            worksheet['A1'].s = {
+                font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 14 },
+                fill: { fgColor: { rgb: '1F6F4A' } },
+                alignment: { horizontal: 'center', vertical: 'center' }
+            };
+
+            worksheet['A2'].s = {
+                font: { bold: true },
+                fill: { fgColor: { rgb: 'EAF4EE' } }
+            };
+
+            const headerRow = 3;
+            for (let c = 0; c <= 5; c++) {
+                const cell = worksheet[XLSX.utils.encode_cell({ r: headerRow, c })];
+                if (cell) {
+                    cell.s = {
+                        font: { bold: true, color: { rgb: 'FFFFFF' } },
+                        fill: { fgColor: { rgb: '2E8B57' } },
+                        alignment: { horizontal: 'center', vertical: 'center' },
+                        border: {
+                            top: { style: 'thin', color: { rgb: 'D0D7DE' } },
+                            bottom: { style: 'thin', color: { rgb: 'D0D7DE' } },
+                            left: { style: 'thin', color: { rgb: 'D0D7DE' } },
+                            right: { style: 'thin', color: { rgb: 'D0D7DE' } }
+                        }
+                    };
+                }
+            }
+
+            const totalRow = rows.length - 1;
+            worksheet[`A${totalRow + 1}`].s = {
+                font: { bold: true, color: { rgb: 'FFFFFF' } },
+                fill: { fgColor: { rgb: '1F6F4A' } }
+            };
+            worksheet[`F${totalRow + 1}`].s = {
+                font: { bold: true, color: { rgb: 'FFFFFF' } },
+                fill: { fgColor: { rgb: '1F6F4A' } }
+            };
+
+            worksheet['!cols'] = [
+                { wch: 22 },
+                { wch: 20 },
+                { wch: 22 },
+                { wch: 28 },
+                { wch: 15 },
+                { wch: 16 }
+            ];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Transaksi');
+            XLSX.writeFile(workbook, 'laporan-transaksi-qmas.xlsx');
+        }
+
+        function getFilteredProducts() {
+            const base = appState.activeFilter === 'Semua'
+                ? appState.products
+                : appState.products.filter(item => item.category === appState.activeFilter || item.name === appState.activeFilter);
+            if (!appState.searchQuery) return base;
+            return base.filter(item => item.name.toLowerCase().includes(appState.searchQuery.toLowerCase()));
+        }
+
+        function updateMenuState() {
+            menuItems.forEach(item => {
+                const isActive = item.dataset.menu === appState.activeMenu;
+                item.classList.toggle('active', isActive);
+            });
+        }
+
+        function addToCart(productId) {
+            const product = appState.products.find(item => item.id === productId);
+            if (!product) return;
+            const location = appState.activeStockLocation;
+            const availableStock = getProductStock(product, location);
+            const inCart = appState.cart.find(item => item.id === productId && (item.location || location) === location);
+            if (inCart) {
+                if (inCart.qty < availableStock) inCart.qty += 1;
+            } else {
+                if (availableStock > 0) {
+                    appState.cart.push({ id: product.id, qty: 1, price: product.price, name: product.name, location });
+                }
+            }
+            saveState();
+            renderPage();
+        }
+
+        function changeCartQty(productId, delta) {
+            const item = appState.cart.find(entry => entry.id === productId);
+            if (!item) return;
+            const product = appState.products.find(entry => entry.id === productId);
+            const location = item.location || appState.activeStockLocation;
+            item.qty += delta;
+            if (item.qty <= 0) {
+                appState.cart = appState.cart.filter(entry => entry.id !== productId);
+            } else if (product && item.qty > getProductStock(product, location)) {
+                item.qty = getProductStock(product, location);
+            }
+            saveState();
+            renderPage();
+        }
+
+        function processPayment() {
+            if (!appState.cart.length) return;
+
+            const total = appState.cart.reduce((sum, item) => sum + item.qty * item.price, 0);
+            const invoice = generateInvoice();
+            const itemCount = appState.cart.reduce((sum, item) => sum + item.qty, 0);
+            const items = appState.cart.map(item => `${item.name} x${item.qty}`).join(', ');
+            const customerName = (appState.customerName || '').trim() || 'Umum';
+
+            appState.transactions.unshift({
+                invoice,
+                date: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                customer: customerName,
+                item: `${itemCount} produk`,
+                method: appState.paymentMethod,
+                total
+            });
+
+            appState.cart.forEach(item => {
+                const product = appState.products.find(p => p.id === item.id);
+                if (product) {
+                    const location = item.location || appState.activeStockLocation;
+                    setProductStock(product, getProductStock(product, location) - item.qty, location);
+                }
+            });
+
+            appState.cart = [];
+            appState.activeMenu = 'transaksi';
+            appState.checkoutModalOpen = false;
+            saveState();
+            renderPage();
+        }
+
+        function renderDashboard() {
+            const totalIncome = appState.transactions.reduce((sum, item) => sum + item.total, 0);
+            const totalItems = stockLocations.reduce((locationTotal, location) => (
+                locationTotal + appState.products.reduce((sum, item) => sum + getProductStock(item, location), 0)
+            ), 0);
+            const lowStock = stockLocations.reduce((locationTotal, location) => (
+                locationTotal + appState.products.filter(item => getProductStock(item, location) <= 10).length
+            ), 0);
+            const avgSell = Math.round(totalIncome / appState.transactions.length);
+
+            const recent = appState.transactions.slice(0, 4);
+
+            return `
+                <div class="screen-shell">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Pendapatan</div>
+                            <div class="kpi-value">${money(totalIncome)}</div>
+                            <div class="kpi-trend">▲ 12.5% bulan ini</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Stok Semua Gudang</div>
+                            <div class="kpi-value">${totalItems}</div>
+                            <div class="kpi-trend">${lowStock} produk low stock</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Transaksi</div>
+                            <div class="kpi-value">${appState.transactions.length}</div>
+                            <div class="kpi-trend">▲ 6 hari berturut</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Rata-rata</div>
+                            <div class="kpi-value">${money(avgSell)}</div>
+                            <div class="kpi-trend">Per transaksi</div>
+                        </div>
+                    </div>
+
+                    <div class="panel-section">
+                        <div class="section-head">
+                            <h3>Ringkasan Penjualan</h3>
+                            <button class="mini-btn">Lihat detail</button>
+                        </div>
+                        <div class="chart-bars">
+                            <div class="bar-col"><div class="bar" style="height: 60%"></div><span>Jan</span></div>
+                            <div class="bar-col"><div class="bar" style="height: 80%"></div><span>Feb</span></div>
+                            <div class="bar-col"><div class="bar" style="height: 70%"></div><span>Mar</span></div>
+                            <div class="bar-col"><div class="bar" style="height: 95%"></div><span>Apr</span></div>
+                            <div class="bar-col"><div class="bar" style="height: 88%"></div><span>Mei</span></div>
+                            <div class="bar-col"><div class="bar" style="height: 100%"></div><span>Jun</span></div>
+                        </div>
+                    </div>
+
+                    <div class="panel-section">
+                        <div class="section-head">
+                            <h3>Transaksi Terbaru</h3>
+                            <button class="action-btn">Refresh</button>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Invoice</th>
+                                        <th>Pelanggan</th>
+                                        <th>Metode</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${recent.map(item => `
+                                        <tr>
+                                            <td>${item.invoice}</td>
+                                            <td>${item.customer}</td>
+                                            <td><span class="badge-status ${item.method === 'Tunai' ? 'tunai' : item.method === 'Transfer' ? 'transfer' : 'tagihan'}">${item.method}</span></td>
+                                            <td>${money(item.total)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderKasir() {
+            const filteredProducts = getFilteredProducts();
+            const subtotal = appState.cart.reduce((sum, item) => sum + item.qty * item.price, 0);
+            const total = subtotal;
+
+            return `
+                <div class="kasir-layout">
+                    <div class="product-panel">
+                        <div class="top-bar">
+                            <input class="search-box" value="${appState.searchQuery}" placeholder="Cari produk..." data-search-input>
+                            <div class="filter-group">
+                                ${['Semua','QMAS GL 19L','QMAS 240 ML','QMAS 330 ML','QMAS 600 ML','QMAS 1.5L'].map(filter => `
+                                    <button class="filter ${appState.activeFilter === filter ? 'active' : ''}" data-filter="${filter}">${filter}</button>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="product-grid">
+                            ${filteredProducts.length ? filteredProducts.map(product => `
+                                <div class="product-card" data-product-id="${product.id}" style="cursor:pointer;">
+                                    <div class="product-image ${product.image}">
+                                        <span class="stock-badge">STOK ${getProductStock(product)}</span>
+                                    </div>
+                                    <div style="padding:12px;">
+                                        <div style="font-weight:800; color:#1e2d3c; margin-bottom:4px;">${product.name}</div>
+                                        <div style="font-size:13px; color:#6d7d90; margin-bottom:8px;">${product.category}</div>
+                                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                                            <strong style="color:#0f8fe8;">${money(product.price)}</strong>
+                                            <button class="mini-btn" data-add-product="${product.id}">+ Tambah</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('') : `<div class="empty-state" style="grid-column: 1 / -1;"><strong>Produk tidak ditemukan</strong><span>Coba cari nama atau ubah filter kategori.</span></div>`}
+                        </div>
+                    </div>
+
+                    <aside class="cart-panel">
+                        <div class="cart-header">
+                            <h3>Keranjang</h3>
+                            <span>${appState.cart.reduce((sum, item) => sum + item.qty, 0)} item</span>
+                        </div>
+
+                        <div class="customer-field" style="margin: 0 0 14px;">
+                            <label style="display:block; font-size:12px; font-weight:700; color:#607389; margin-bottom:6px;">Nama Pelanggan</label>
+                            <input
+                                type="text"
+                                value="${appState.customerName || ''}"
+                                data-customer-name
+                                placeholder="Masukkan nama pelanggan"
+                                style="width:100%; border:1px solid #dfe7f1; border-radius:10px; padding:10px 12px; font-size:14px; background:#fff; color:#1d2736; outline:none;"
+                            >
+                        </div>
+
+                        ${appState.cart.length === 0 ? `
+                            <div class="cart-empty">
+                                <div class="cart-icon">🛒</div>
+                                <h4>Keranjang kosong</h4>
+                                <p>Pilih produk di sebelah kiri</p>
+                            </div>
+                        ` : `
+                            <div style="flex:1;">
+                                ${appState.cart.map(item => {
+                                    const product = appState.products.find(p => p.id === item.id);
+                                    return `
+                                        <div class="cart-item">
+                                            <div>
+                                                <div class="cart-item-name">${item.name}</div>
+                                                <small>${money(item.price)} / pcs</small>
+                                            </div>
+                                            <div style="display:flex; align-items:center; gap:10px;">
+                                                <div class="qty-control">
+                                                    <button data-cart-minus="${item.id}">−</button>
+                                                    <span>${item.qty}</span>
+                                                    <button data-cart-plus="${item.id}">+</button>
+                                                </div>
+                                                <div class="cart-item-price">${money(item.qty * item.price)}</div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `}
+
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <strong>${money(subtotal)}</strong>
+                        </div>
+                        <div class="summary-row total">
+                            <span>TOTAL</span>
+                            <strong>${money(total)}</strong>
+                        </div>
+                        <button class="pay-button" ${appState.cart.length ? '' : 'disabled'} style="opacity:${appState.cart.length ? '1' : '0.5'}; cursor:${appState.cart.length ? 'pointer' : 'not-allowed'};">Bayar Sekarang <span>${money(total)}</span></button>
+                    </aside>
+                </div>
+                ${appState.checkoutModalOpen ? `
+                    <div class="modal-backdrop" id="paymentModal">
+                        <div class="modal-card">
+                            <div class="modal-header">
+                                <h3>Konfirmasi Bayar</h3>
+                                <button class="close-btn" data-close-modal>✕</button>
+                            </div>
+                            <div class="payment-methods">
+                                ${['Tunai','Transfer','Tagihan'].map(method => `
+                                    <button class="payment-method ${appState.paymentMethod === method ? 'active' : ''}" data-payment-method="${method}">${method}</button>
+                                `).join('')}
+                            </div>
+                            <div class="payment-footer">
+                                <span style="color:#607389;font-weight:700;">Total</span>
+                                <div class="payment-total">${money(total)}</div>
+                            </div>
+                            <div class="payment-footer">
+                                <button class="action-btn" data-close-modal>Batal</button>
+                                <button class="primary-btn" data-confirm-payment>Bayar Sekarang</button>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function renderStok() {
+            return `
+                <div class="screen-shell">
+                    <div class="panel-section">
+                        <div class="section-head">
+                            <h3>Stok Produk</h3>
+                            <button class="primary-btn">Tambah Produk</button>
+                        </div>
+                        <div class="stock-summary-grid">
+                            ${stockLocations.map(location => `
+                                <div class="stock-summary-card">
+                                    <span>${location}</span>
+                                    <strong>${appState.products.reduce((sum, item) => sum + getProductStock(item, location), 0)}</strong>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="stock-location-tabs">
+                            ${stockLocations.map(location => `
+                                <button class="stock-location-tab ${appState.activeStockLocation === location ? 'active' : ''}" data-stock-location="${location}">${location}</button>
+                            `).join('')}
+                        </div>
+                        <div class="table-wrap stock-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Produk</th>
+                                        <th>Kategori</th>
+                                        <th>Harga</th>
+                                        <th>Stok</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${appState.products.map(item => `
+                                        <tr>
+                                            <td><strong>${item.name}</strong></td>
+                                            <td>${item.category}</td>
+                                            <td>
+                                                <input class="price-input" type="number" min="0" step="500" value="${item.price}" data-price-input="${item.id}" aria-label="Harga ${item.name}">
+                                            </td>
+                                            <td>
+                                                <div class="qty-box">
+                                                    <button class="action-btn" data-stock-minus="${item.id}">−</button>
+                                                    <input type="number" value="${getProductStock(item)}" readonly>
+                                                    <button class="action-btn" data-stock-plus="${item.id}">+</button>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge-status ${getProductStock(item) > 10 ? 'tunai' : 'tagihan'}">${getProductStock(item) > 10 ? 'Cukup' : 'Rendah'}</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTransaksi() {
+            return `
+                <div class="screen-shell">
+                    <div class="panel-section">
+                        <div class="section-head">
+                            <h3>Daftar Transaksi</h3>
+                            <button class="action-btn" data-export-transactions>Export Excel</button>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Pelanggan</th>
+                                        <th>Item</th>
+                                        <th>Metode</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${appState.transactions.map(item => `
+                                        <tr>
+                                            <td>${item.date}</td>
+                                            <td>${item.customer}</td>
+                                            <td>${item.item}</td>
+                                            <td><span class="badge-status ${item.method === 'Tunai' ? 'tunai' : item.method === 'Transfer' ? 'transfer' : 'tagihan'}">${item.method}</span></td>
+                                            <td>${money(item.total)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLaporan() {
+            return `
+                <div class="screen-shell">
+                    <div class="report-list">
+                        <div class="report-card">
+                            <h4>Total Omset</h4>
+                            <strong>${money(appState.transactions.reduce((sum, item) => sum + item.total, 0))}</strong>
+                            <div class="meta-row"><span>Per bulan</span><span>+8.3%</span></div>
+                        </div>
+                        <div class="report-card">
+                            <h4>Produk Terjual</h4>
+                            <strong>${appState.products.reduce((sum, item) => sum + (100 - getProductStock(item)), 0)}</strong>
+                            <div class="meta-row"><span>Unit</span><span>+15</span></div>
+                        </div>
+                        <div class="report-card">
+                            <h4>Customer Baru</h4>
+                            <strong>46</strong>
+                            <div class="meta-row"><span>Hari ini</span><span>+5</span></div>
+                        </div>
+                        <div class="report-card">
+                            <h4>Retur</h4>
+                            <strong>3</strong>
+                            <div class="meta-row"><span>Item</span><span>-1</span></div>
+                        </div>
+                    </div>
+
+                    <div class="panel-section">
+                        <div class="section-head">
+                            <h3>Trend Penjualan</h3>
+                            <button class="action-btn">Download PDF</button>
+                        </div>
+                        <div class="chart-bars">
+                            <div class="bar-col"><div class="bar" style="height: 55%"></div><span>Sen</span></div>
+                            <div class="bar-col"><div class="bar" style="height: 70%"></div><span>Sel</span></div>
+                            <div class="bar-col"><div class="bar" style="height: 62%"></div><span>Rab</span></div>
+                            <div class="bar-col"><div class="bar" style="height: 85%"></div><span>Kam</span></div>
+                            <div class="bar-col"><div class="bar" style="height: 95%"></div><span>Jum</span></div>
+                            <div class="bar-col"><div class="bar" style="height: 80%"></div><span>Sab</span></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPage() {
+            const content = document.getElementById('pageContent');
+            if (appState.activeMenu === 'dashboard') {
+                content.innerHTML = renderDashboard();
+            } else if (appState.activeMenu === 'kasir') {
+                content.innerHTML = renderKasir();
+            } else if (appState.activeMenu === 'stok') {
+                content.innerHTML = renderStok();
+            } else if (appState.activeMenu === 'transaksi') {
+                content.innerHTML = renderTransaksi();
+            } else if (appState.activeMenu === 'laporan') {
+                content.innerHTML = renderLaporan();
+            }
+            attachEvents();
+            updateMenuState();
+            saveState();
+        }
+
+        function attachEvents() {
+            document.querySelectorAll('.filter').forEach(button => {
+                button.addEventListener('click', () => {
+                    appState.activeFilter = button.dataset.filter;
+                    renderPage();
+                });
+            });
+
+            const searchInput = document.querySelector('[data-search-input]');
+            if (searchInput) {
+                searchInput.addEventListener('input', (event) => {
+                    appState.searchQuery = event.target.value;
+                    renderPage();
+                });
+            }
+
+            const customerInput = document.querySelector('[data-customer-name]');
+            if (customerInput) {
+                customerInput.addEventListener('input', (event) => {
+                    appState.customerName = event.target.value;
+                    saveState();
+                });
+            }
+
+            document.querySelectorAll('[data-add-product]').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    addToCart(Number(event.target.dataset.addProduct));
+                });
+            });
+
+            document.querySelectorAll('[data-cart-plus]').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    changeCartQty(Number(event.target.dataset.cartPlus), 1);
+                });
+            });
+
+            document.querySelectorAll('[data-cart-minus]').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    changeCartQty(Number(event.target.dataset.cartMinus), -1);
+                });
+            });
+
+            document.querySelectorAll('[data-stock-location]').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    appState.activeStockLocation = event.currentTarget.dataset.stockLocation;
+                    saveState();
+                    renderPage();
+                });
+            });
+
+            document.querySelectorAll('[data-stock-plus]').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const id = Number(event.target.dataset.stockPlus);
+                    const product = appState.products.find(item => item.id === id);
+                    if (product) setProductStock(product, getProductStock(product) + 1);
+                    saveState();
+                    renderPage();
+                });
+            });
+
+            document.querySelectorAll('[data-stock-minus]').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const id = Number(event.target.dataset.stockMinus);
+                    const product = appState.products.find(item => item.id === id);
+                    if (product) setProductStock(product, getProductStock(product) - 1);
+                    saveState();
+                    renderPage();
+                });
+            });
+
+            document.querySelectorAll('[data-price-input]').forEach(input => {
+                input.addEventListener('change', (event) => {
+                    const id = Number(event.target.dataset.priceInput);
+                    const product = appState.products.find(item => item.id === id);
+                    const price = Number(event.target.value);
+                    if (!product || !Number.isFinite(price) || price < 0) {
+                        renderPage();
+                        return;
+                    }
+                    product.price = Math.round(price);
+                    saveState();
+                    renderPage();
+                });
+            });
+
+            const payButton = document.querySelector('.pay-button');
+            if (payButton && appState.cart.length) {
+                payButton.addEventListener('click', () => {
+                    appState.checkoutModalOpen = true;
+                    renderPage();
+                });
+            }
+
+            document.querySelectorAll('[data-payment-method]').forEach(button => {
+                button.addEventListener('click', () => {
+                    appState.paymentMethod = button.dataset.paymentMethod;
+                    renderPage();
+                });
+            });
+
+            document.querySelectorAll('[data-close-modal]').forEach(button => {
+                button.addEventListener('click', () => {
+                    appState.checkoutModalOpen = false;
+                    renderPage();
+                });
+            });
+
+            const confirm = document.querySelector('[data-confirm-payment]');
+            if (confirm) {
+                confirm.addEventListener('click', processPayment);
+            }
+
+            const exportButton = document.querySelector('[data-export-transactions]');
+            if (exportButton) {
+                exportButton.addEventListener('click', exportTransactionsToExcel);
+            }
+        }
+
+        menuItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const selected = item.dataset.menu;
+                appState.activeMenu = selected;
+                appState.activeFilter = 'Semua';
+                renderPage();
+            });
+        });
+
+        renderPage();
+    </script>
+</body>
+</html>
